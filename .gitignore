@@ -1,0 +1,13 @@
+# 系统与编辑器
+.DS_Store
+Thumbs.db
+*.log
+.idea/
+.vscode/
+
+# 依赖（若未来引入构建工具）
+node_modules/
+dist/
+
+# 本地工作区
+.musepool/

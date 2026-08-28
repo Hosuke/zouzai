@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>黔行星球 · 贵州微缩漫游</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&family=Noto+Serif+SC:wght@600;900&family=Noto+Sans+SC:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    /* animal-island 风格令牌 */
+    --cream:#F7F3E1;        /* 米纸板 */
+    --cream-2:#FFFDF4;      /* 亮米 */
+    --ink:#4C3C33;          /* 深棕正文 */
+    --text:#827157;         /* 中棕 */
+    --text-dim:#A79A7E;     /* 浅棕 */
+    --teal:#19C8B9;         /* 主题青 */
+    --teal-dark:#0EA096;
+    --sun:#FAD12B;          /* 动森黄 */
+    --sun-dark:#DDB400;
+    --coral:#E68E6D;        /* 珊瑚橘 */
+    --coral-dark:#CE6F52;
+    --red:#C5281F;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{width:100%;height:100%;overflow:hidden;background:#1c2733;}
+  body{font-family:'Noto Sans SC',-apple-system,'PingFang SC','Microsoft YaHei',sans-serif;color:var(--cream);}
+  #scene{position:fixed;inset:0;display:block;touch-action:none;}
+  #vignette{position:fixed;inset:0;pointer-events:none;z-index:3;
+    background:radial-gradient(ellipse at center, transparent 55%, rgba(44,36,28,.34) 100%);}
+
+  /* 展示字体：圆滚滚的站酷快乐体 */
+  .serif{font-family:'ZCOOL KuaiLe','Noto Sans SC',sans-serif;font-weight:400;}
+
+  /* ---------- 通用面板：米纸 + 有机圆角 + 白描边 ---------- */
+  .parchment{
+    position:relative;
+    background:var(--cream);
+    color:var(--ink);
+    border-radius:30px 26px 32px 24px / 26px 32px 24px 30px;
+    box-shadow:
+      inset 0 0 0 4px var(--cream-2),
+      0 14px 34px rgba(44,36,28,.35),
+      0 3px 10px rgba(44,36,28,.18);
+  }
+
+  /* ---------- 3D 按压按钮（动森招牌手感） ---------- */
+  .btn{
+    position:relative;z-index:2;margin-top:26px;display:inline-block;
+    padding:14px 46px;border:none;cursor:pointer;border-radius:999px;
+    background:var(--sun);
+    color:var(--ink);font-size:17px;font-weight:700;letter-spacing:.28em;text-indent:.28em;
+    box-shadow:0 6px 0 var(--sun-dark), 0 10px 18px rgba(44,36,28,.22);
+    transition:transform .12s ease, box-shadow .12s ease;
+    font-family:'Noto Sans SC',sans-serif;
+  }
+  .btn:hover{transform:translateY(-2px);box-shadow:0 8px 0 var(--sun-dark), 0 14px 22px rgba(44,36,28,.24);}
+  .btn:active{transform:translateY(4px);box-shadow:0 2px 0 var(--sun-dark), 0 4px 8px rgba(44,36,28,.2);}
+  .btn.ghost{
+    background:var(--cream-2);color:var(--teal-dark);
+    border:none;box-shadow:0 5px 0 rgba(14,160,150,.55), 0 8px 14px rgba(44,36,28,.14);
+    font-size:13px;letter-spacing:.2em;text-indent:.2em;padding:10px 30px;
+  }
+  .btn.ghost:hover{transform:translateY(-2px);box-shadow:0 7px 0 rgba(14,160,150,.55), 0 10px 16px rgba(44,36,28,.16);}
+  .btn.ghost:active{transform:translateY(3px);box-shadow:0 2px 0 rgba(14,160,150,.55);}
+
+  /* ---------- HUD ---------- */
+  #hud{position:fixed;inset:0;pointer-events:none;z-index:5;opacity:0;transition:opacity .8s ease;}
+  #hud.on{opacity:1;}
+
+  #brand{
+    position:absolute;top:18px;left:20px;
+    display:flex;align-items:center;gap:10px;
+    color:#FFFDF4;
+    text-shadow:0 2px 10px rgba(44,36,28,.6);
+  }
+  #brand .seal{
+    width:40px;height:40px;flex:none;
+    border-radius:14px 18px 14px 18px / 18px 14px 18px 14px;
+    background:var(--sun);
+    display:grid;place-items:center;
+    color:var(--ink);font-size:21px;
+    box-shadow:0 4px 0 var(--sun-dark), 0 6px 12px rgba(44,36,28,.3);
+  }
+  #brand h1{font-size:21px;letter-spacing:.12em;line-height:1.1;}
+  #brand p{font-size:11px;letter-spacing:.32em;opacity:.9;margin-top:3px;}
+
+  /* 明信片进度：叶子填充 */
+  #progress{
+    position:absolute;top:20px;left:50%;transform:translateX(-50%);
+    display:flex;align-items:center;gap:9px;
+    padding:9px 18px;border-radius:999px;
+    background:rgba(247,243,225,.92);
+    box-shadow:0 4px 0 rgba(44,36,28,.18), 0 8px 18px rgba(44,36,28,.22);
+  }
+  #progress .label{font-size:12px;letter-spacing:.2em;color:var(--text);font-weight:700;}
+  #progress .dots{display:flex;gap:6px;}
+  #progress .dot{
+    width:11px;height:11px;
+    border-radius:50% 4px 50% 50%;
+    transform:rotate(45deg);
+    border:2px solid var(--text-dim);
+    background:transparent;
+    transition:all .35s ease;
+  }
+  #progress .dot.done{
+    background:var(--teal);
+    border-color:var(--teal-dark);
+    box-shadow:0 2px 6px rgba(25,200,185,.55);
+  }
+
+  #hint{
+    position:absolute;bottom:18px;left:50%;transform:translateX(-50%);
+    font-size:12px;letter-spacing:.12em;color:rgba(255,253,244,.85);
+    text-shadow:0 1px 6px rgba(44,36,28,.65);white-space:nowrap;
+  }
+
+  /* 靠近景点的提示：黄色 3D 胶囊 */
+  #prompt{
+    position:absolute;left:50%;bottom:88px;transform:translateX(-50%) translateY(10px);
+    padding:11px 24px;border-radius:999px;cursor:pointer;pointer-events:auto;
+    background:var(--sun);color:var(--ink);
+    font-size:14px;letter-spacing:.08em;font-weight:700;
+    box-shadow:0 5px 0 var(--sun-dark), 0 10px 18px rgba(44,36,28,.3);
+    opacity:0;transition:all .25s ease;white-space:nowrap;
+  }
+  #prompt.show{opacity:1;transform:translateX(-50%) translateY(0);}
+  #prompt:active{transform:translateX(-50%) translateY(3px);box-shadow:0 2px 0 var(--sun-dark);}
+  #prompt b{font-weight:900;}
+  #prompt .key{
+    display:inline-block;padding:2px 9px;margin-right:8px;border-radius:999px;
+    background:var(--ink);color:var(--sun);font-weight:700;font-size:12px;
+  }
+
+  /* 行程单入口 / 音效开关：米纸小胶囊 */
+  #plan-btn, #snd-btn{
+    position:absolute;pointer-events:auto;cursor:pointer;user-select:none;
+    padding:8px 20px;border-radius:999px;
+    background:rgba(247,243,225,.94);
+    color:var(--teal-dark);font-size:12.5px;font-weight:700;letter-spacing:.16em;
+    box-shadow:0 4px 0 rgba(44,36,28,.2), 0 6px 14px rgba(44,36,28,.2);
+    transition:all .15s ease;
+  }
+  #plan-btn{top:70px;left:50%;transform:translateX(-50%);}
+  #snd-btn{top:70px;right:20px;}
+  #plan-btn:hover, #snd-btn:hover{background:#fff;}
+  #plan-btn:active{transform:translateX(-50%) translateY(3px);box-shadow:0 1px 0 rgba(44,36,28,.2);}
+  #snd-btn:active{transform:translateY(3px);box-shadow:0 1px 0 rgba(44,36,28,.2);}
+
+  /* 送信状态条 */
+  #letter-chip{
+    position:absolute;top:106px;left:50%;transform:translateX(-50%) translateY(-6px);
+    display:flex;align-items:center;gap:8px;
+    padding:7px 18px;border-radius:999px;white-space:nowrap;
+    background:rgba(247,243,225,.94);
+    color:var(--text);font-size:12px;font-weight:700;letter-spacing:.08em;
+    box-shadow:0 4px 0 rgba(44,36,28,.16), 0 6px 12px rgba(44,36,28,.18);
+    opacity:0;transition:all .3s ease;pointer-events:none;
+  }
+  #letter-chip.show{opacity:1;transform:translateX(-50%) translateY(0);}
+  #letter-chip b{color:var(--teal-dark);font-weight:900;}
+
+  /* 全屏 toast：对话气泡 */
+  #toast{
+    position:fixed;top:150px;left:50%;transform:translateX(-50%) translateY(-12px);
+    z-index:40;max-width:min(480px,86vw);text-align:center;
+    padding:18px 28px;pointer-events:none;
+    background:var(--cream-2);color:var(--ink);
+    border-radius:24px 28px 22px 26px / 26px 22px 28px 24px;
+    box-shadow:inset 0 0 0 3px var(--cream), 0 6px 0 rgba(44,36,28,.14), 0 16px 36px rgba(44,36,28,.35);
+    font-size:14px;line-height:1.9;letter-spacing:.04em;
+    opacity:0;transition:all .35s ease;
+  }
+  #toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+  #toast b{color:var(--teal-dark);font-size:16px;letter-spacing:.1em;}
+
+  /* ---------- 行程单面板 ---------- */
+  #plan-panel{width:min(460px,88vw);padding:32px 32px 26px;text-align:left;}
+  #plan-panel h3{font-size:27px;color:var(--ink);letter-spacing:.06em;}
+  #plan-panel h3 em{font-style:normal;color:var(--teal-dark);}
+  .plan-sub{margin-top:8px;font-size:13px;color:var(--text);letter-spacing:.04em;}
+  .plan-sub b{color:var(--coral-dark);}
+  .plan-list{margin-top:16px;max-height:300px;overflow:auto;display:flex;flex-direction:column;gap:8px;}
+  .plan-item{
+    display:flex;align-items:center;gap:10px;
+    padding:9px 14px;border-radius:14px 16px 14px 16px / 16px 14px 16px 14px;
+    background:var(--cream-2);box-shadow:0 2px 0 rgba(44,36,28,.08);
+    font-size:14px;color:var(--ink);
+  }
+  .plan-item .n{
+    flex:none;width:24px;height:24px;border-radius:50% 8px 50% 50%;transform:rotate(45deg);
+    background:var(--teal);
+    color:#fff;font-size:12px;font-weight:700;display:grid;place-items:center;
+  }
+  .plan-item .n span{transform:rotate(-45deg);}
+  .plan-item .nm{flex:1;font-weight:700;}
+  .plan-item .tg{
+    flex:none;font-size:11px;padding:3px 10px;border-radius:999px;
+    border:2px solid var(--text-dim);color:var(--text);letter-spacing:.06em;font-weight:500;
+  }
+  .plan-item .tg.red{border-color:var(--coral);color:var(--coral-dark);}
+  .plan-empty{padding:26px 0;text-align:center;font-size:13px;color:var(--text);line-height:2;}
+  .plan-themes{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap;}
+  .plan-themes .th{
+    padding:5px 14px;border-radius:999px;cursor:pointer;font-size:12px;letter-spacing:.05em;font-weight:700;
+    border:2px solid var(--text-dim);color:var(--text);background:var(--cream-2);
+    transition:all .15s ease;
+  }
+  .plan-themes .th.on{
+    background:var(--teal);color:#fff;border-color:var(--teal-dark);
+    box-shadow:0 3px 0 var(--teal-dark);
+  }
+  .plan-item.dim{opacity:.45;}
+  .plan-item.dim .n{background:var(--text-dim);}
+  .plan-leg{
+    display:flex;align-items:center;gap:8px;
+    padding:2px 14px 2px 44px;font-size:11.5px;color:var(--text);letter-spacing:.03em;
+  }
+  .plan-leg .arrow{color:var(--teal-dark);font-weight:900;}
+  .plan-leg .save{color:var(--coral-dark);font-weight:700;}
+  .plan-summary{
+    margin-top:14px;padding:14px 18px;border-radius:18px 22px 18px 22px / 22px 18px 22px 18px;
+    background:var(--teal);
+    color:#fff;font-size:13px;line-height:1.9;letter-spacing:.03em;
+    box-shadow:0 4px 0 var(--teal-dark);
+  }
+  .plan-summary b{color:var(--sun);font-weight:900;}
+  .plan-summary .small{font-size:11px;opacity:.8;letter-spacing:.02em;}
+  .plan-services{
+    margin-top:16px;padding-top:14px;border-top:2px dashed rgba(130,113,87,.35);
+    display:grid;grid-template-columns:1fr 1fr;gap:8px;
+  }
+  .plan-services .svc{
+    display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--ink);letter-spacing:.03em;font-weight:500;
+  }
+  .plan-services .svc i{
+    flex:none;width:10px;height:10px;border-radius:50% 4px 50% 50%;transform:rotate(45deg);
+    background:var(--sun);border:2px solid var(--sun-dark);
+  }
+  .plan-days{margin-top:12px;font-size:12.5px;color:var(--coral-dark);letter-spacing:.08em;font-weight:700;}
+  .plan-note{margin-top:6px;font-size:11px;color:var(--text-dim);letter-spacing:.04em;}
+  #plan-panel .btn{margin-top:20px;padding:11px 38px;font-size:14px;display:block;margin-left:auto;margin-right:auto;text-align:center;}
+  #plan-panel .btn.ghost{margin-top:12px;}
+
+  /* 顺路二级站点 */
+  .plan-near{
+    margin:-2px 0 0 36px;padding:0 2px;
+    font-size:11.5px;color:var(--text);letter-spacing:.03em;line-height:1.9;
+  }
+  .plan-near span{display:inline-block;margin-right:10px;color:var(--ink);font-weight:500;}
+  .plan-near span i{font-style:normal;color:var(--text-dim);margin-left:4px;font-size:10.5px;}
+  .plan-near span.red{color:var(--coral-dark);}
+  .plan-near span.red i{color:var(--coral);}
+
+  /* 红色印记专线 */
+  .plan-redline{
+    display:none;margin-top:14px;padding:12px 16px;border-radius:16px 18px 16px 18px / 18px 16px 18px 16px;
+    background:rgba(230,142,109,.12);border:2px dashed rgba(206,111,82,.5);
+  }
+  .plan-redline .rl-head{font-size:12.5px;font-weight:900;color:var(--coral-dark);letter-spacing:.12em;margin-bottom:8px;}
+  .plan-redline .rl-item{display:flex;align-items:baseline;gap:8px;font-size:12px;line-height:2;color:var(--text);}
+  .plan-redline .rl-item .dot{width:7px;height:7px;border-radius:50% 3px 50% 50%;transform:rotate(45deg);background:var(--red);flex:none;}
+  .plan-redline .rl-item b{color:var(--ink);font-weight:700;flex:none;}
+  .plan-redline .rl-note{color:var(--text-dim);font-size:11px;}
+
+  /* ---------- 明信片风物行 ---------- */
+  #card-culture{display:none;gap:8px;flex-wrap:wrap;padding:0 30px;margin-top:14px;}
+  #card-culture .cc{
+    flex:1 1 auto;padding:7px 13px;font-size:12px;line-height:1.7;font-weight:500;
+    border-radius:12px 14px 12px 14px / 14px 12px 14px 12px;
+    background:rgba(25,200,185,.1);box-shadow:inset 0 0 0 2px rgba(25,200,185,.4);color:var(--ink);
+  }
+  #card-culture .cc.food{background:rgba(250,209,43,.14);box-shadow:inset 0 0 0 2px rgba(221,180,0,.5);}
+  #card-culture .cc i{
+    display:inline-block;font-style:normal;font-weight:900;font-size:10.5px;
+    color:var(--teal-dark);letter-spacing:.1em;margin-right:6px;
+  }
+  #card-culture .cc.food i{color:var(--sun-dark);}
+
+  .route span.red{border-color:var(--coral);color:var(--coral-dark);background:rgba(230,142,109,.14);}
+  @media (max-width:640px){
+    #plan-btn{top:auto;bottom:210px;}
+  }
+
+  /* ---------- 开始页 ---------- */
+  .overlay{
+    position:fixed;inset:0;z-index:20;display:grid;place-items:center;
+    background:radial-gradient(ellipse at 50% 40%, rgba(58,48,36,.42), rgba(30,24,18,.75));
+    backdrop-filter:blur(3px);
+    transition:opacity .7s ease, visibility .7s;
+  }
+  .overlay.hidden{opacity:0;visibility:hidden;pointer-events:none;}
+
+  #start-panel{width:min(480px,88vw);padding:44px 42px 36px;text-align:center;}
+  #start-panel .kicker{font-size:12px;letter-spacing:.5em;color:var(--text-dim);margin-bottom:14px;font-weight:700;}
+  #start-panel h2{font-size:46px;letter-spacing:.08em;color:var(--ink);line-height:1.15;}
+  #start-panel h2 em{font-style:normal;color:var(--teal-dark);}
+  #start-panel .sub{margin-top:12px;font-size:14px;line-height:1.9;color:var(--text);}
+  #start-panel .route{
+    margin:22px auto 4px;display:flex;flex-wrap:wrap;justify-content:center;gap:7px 5px;
+    font-size:12px;color:var(--ink);
+  }
+  #start-panel .route span{
+    padding:4px 11px;border-radius:999px;background:var(--cream-2);
+    box-shadow:inset 0 0 0 2px rgba(167,154,126,.5);
+    font-weight:500;
+  }
+  #start-panel .ctrl{margin-top:20px;font-size:12px;color:var(--text-dim);letter-spacing:.06em;line-height:2;}
+
+  /* ---------- 景点明信片 ---------- */
+  #card-panel{width:min(430px,88vw);padding:0;overflow:hidden;}
+  #card-panel .head{
+    position:relative;padding:26px 30px 20px;
+    background:var(--teal);
+    color:#fff;
+  }
+  #card-panel .head::after{
+    content:"";position:absolute;left:0;right:0;bottom:-1px;height:12px;
+    background:radial-gradient(circle at 9px -3px, transparent 8px, var(--cream) 8.5px);
+    background-size:18px 12px;background-position:left center;
+  }
+  #card-panel .head .no{font-size:11px;letter-spacing:.35em;color:var(--sun);font-weight:700;}
+  #card-panel .head h3{font-size:29px;letter-spacing:.06em;margin-top:6px;}
+  #card-panel .head .en{font-size:11px;letter-spacing:.16em;opacity:.75;margin-top:4px;text-transform:uppercase;}
+  #card-panel .body{padding:22px 30px 24px;font-size:14.5px;line-height:2;color:var(--ink);}
+  #card-panel .stamp{
+    position:absolute;top:20px;right:22px;z-index:3;
+    width:64px;height:64px;border-radius:50%;
+    border:3px solid rgba(255,255,255,.9);color:#fff;
+    display:grid;place-items:center;transform:rotate(12deg);
+    font-size:15px;letter-spacing:.1em;
+    font-family:'ZCOOL KuaiLe','Noto Sans SC',sans-serif;
+    background:rgba(230,142,109,.9);
+    box-shadow:0 3px 8px rgba(44,36,28,.25);
+  }
+  #card-panel .foot{padding:16px 30px 26px;display:flex;justify-content:space-between;align-items:center;}
+  #card-panel .foot .count{font-size:12px;color:var(--text);letter-spacing:.12em;font-weight:700;}
+  #card-panel .btn{margin-top:0;padding:10px 34px;font-size:14px;}
+
+  /* ---------- 完成页 ---------- */
+  #done-panel{width:min(460px,88vw);padding:40px 38px 34px;text-align:center;}
+  #done-panel h3{font-size:34px;color:var(--ink);letter-spacing:.08em;}
+  #done-panel h3 em{font-style:normal;color:var(--teal-dark);}
+  #done-panel p{margin-top:14px;font-size:14px;line-height:2;color:var(--text);}
+  #done-panel .list{margin:20px 0 4px;display:grid;grid-template-columns:1fr 1fr;gap:7px;}
+  #done-panel .list span{
+    padding:7px 4px;font-size:12.5px;color:var(--text);letter-spacing:.05em;
+    border-radius:12px;background:var(--cream-2);box-shadow:inset 0 0 0 2px rgba(167,154,126,.4);
+  }
+
+  /* ---------- 移动端控制 ---------- */
+  #joy{
+    position:fixed;left:26px;bottom:30px;width:118px;height:118px;z-index:8;
+    border-radius:50%;display:none;
+    background:rgba(247,243,225,.35);border:3px solid rgba(247,243,225,.6);
+    backdrop-filter:blur(4px);
+  }
+  #joy .stick{
+    position:absolute;left:50%;top:50%;width:52px;height:52px;border-radius:50%;
+    transform:translate(-50%,-50%);
+    background:var(--sun);
+    box-shadow:0 4px 0 var(--sun-dark), 0 6px 12px rgba(44,36,28,.35);
+  }
+  #act{
+    position:fixed;right:30px;bottom:52px;width:72px;height:72px;z-index:8;
+    border-radius:50%;display:none;place-items:center;
+    background:var(--coral);color:#fff;
+    font-size:14px;font-weight:900;letter-spacing:.1em;
+    box-shadow:0 5px 0 var(--coral-dark), 0 8px 16px rgba(44,36,28,.3);
+  }
+  #act:active{transform:translateY(3px);box-shadow:0 2px 0 var(--coral-dark);}
+  body.touch #joy{display:block;}
+  body.touch #act.show{display:grid;}
+  body.touch #hint{display:none;}
+
+  @media (max-width:640px){
+    #brand h1{font-size:16px;} #brand p{font-size:9px;letter-spacing:.22em;}
+    #brand .seal{width:32px;height:32px;font-size:16px;}
+    #progress{top:16px;left:auto;right:16px;transform:none;padding:6px 12px;}
+    #start-panel h2{font-size:36px;}
+    #prompt{bottom:150px;}
+  }
+</style>
+</head>
+<body>
+<canvas id="scene"></canvas>
+<div id="vignette"></div>
+
+<div id="hud">
+  <div id="brand">
+    <div class="seal serif">黔</div>
+    <div>
+      <h1 class="serif">黔行星球</h1>
+      <p>贵州微缩漫游</p>
+    </div>
+  </div>
+  <div id="progress">
+    <span class="label">明信片</span>
+    <div class="dots" id="dots"></div>
+  </div>
+  <div id="plan-btn">行程单</div>
+  <div id="snd-btn">音效</div>
+  <div id="letter-chip"></div>
+  <div id="hint">WASD / 方向键 移动 · Space 跳跃 · 靠近地标按 E 互动 · 拖动画面旋转视角</div>
+  <div id="prompt"><span class="key">E</span>打卡 <b id="prompt-name"></b></div>
+</div>
+<div id="toast"></div>
+
+<div id="joy"><div class="stick" id="joy-stick"></div></div>
+<div id="act">打卡</div>
+
+<div class="overlay" id="start">
+  <div class="parchment" id="start-panel">
+    <div class="kicker">GUIZHOU · MINI PLANET</div>
+    <h2 class="serif">黔行<em>星球</em></h2>
+    <p class="sub">一颗装下贵州山水的迷你星球。<br>奔跑在喀斯特峰林与苗寨灯火之间，送信、打卡，集齐 13 张风景明信片——跑完一圈，就是一条贵州环线。</p>
+    <div class="route">
+      <span>黄果树瀑布</span><span>西江千户苗寨</span><span>梵净山</span><span>荔波小七孔</span>
+      <span>镇远古城</span><span>万峰林</span><span>肇兴侗寨</span><span>中国天眼</span>
+      <span>织金洞</span><span>榕江村超</span>
+      <span class="red">遵义会议会址</span><span class="red">娄山关</span><span class="red">四渡赤水渡口</span>
+    </div>
+    <button class="btn" id="start-btn">开始旅行</button>
+    <p class="ctrl">电脑：WASD 移动 · Space 跳跃 · E 互动 · 鼠标拖动转视角<br>手机：左侧摇杆移动 · 右侧按钮互动</p>
+  </div>
+</div>
+
+<div class="overlay hidden" id="card">
+  <div class="parchment" id="card-panel">
+    <div class="stamp serif">已打卡</div>
+    <div class="head">
+      <div class="no" id="card-no">POSTCARD 01</div>
+      <h3 class="serif" id="card-title"></h3>
+      <div class="en" id="card-en"></div>
+    </div>
+    <div class="body" id="card-body"></div>
+    <div id="card-culture"></div>
+    <div class="foot">
+      <span class="count" id="card-count"></span>
+      <button class="btn" id="card-close">继续旅行</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay hidden" id="done">
+  <div class="parchment" id="done-panel">
+    <h3 class="serif">集齐<em>啦</em>！</h3>
+    <p>13 张明信片全部到手。<br>你的贵州环线已经成形——下一站，真实的贵州。</p>
+    <button class="btn" id="done-close">查看我的行程单</button>
+    <button class="btn ghost" id="share-btn">生成分享卡片</button>
+  </div>
+</div>
+
+<div class="overlay hidden" id="plan">
+  <div class="parchment" id="plan-panel">
+    <h3 class="serif">我的<em>贵州环线</em></h3>
+    <p class="plan-sub">已解锁 <b id="plan-count">0</b> / <span id="plan-total">13</span> 个目的地 · 按真实地理位置串联，不走回头路</p>
+    <div class="plan-themes" id="plan-themes">
+      <span class="th on" data-tag="">全部环线</span>
+      <span class="th" data-tag="山水奇观">山水画卷</span>
+      <span class="th" data-tag="民族风情">民族风情</span>
+      <span class="th" data-tag="红色印记">红色印记</span>
+    </div>
+    <div class="plan-list" id="plan-list"></div>
+    <div class="plan-redline" id="plan-redline"></div>
+    <div class="plan-summary" id="plan-summary"></div>
+    <div class="plan-services">
+      <div class="svc"><i></i>拼车接送 · 行李直达下一站酒店</div>
+      <div class="svc"><i></i>旅行保险 · 全程覆盖</div>
+      <div class="svc"><i></i>无人机航拍 · 地标跟拍</div>
+      <div class="svc"><i></i>地道美食 · 每站本地人推荐</div>
+    </div>
+    <p class="plan-days" id="plan-days"></p>
+    <p class="plan-note">演示数据 · 正式版将接入 AI 定制、拼团组游与在线预订</p>
+    <button class="btn" id="plan-close">继续旅行</button>
+    <button class="btn ghost" id="share-btn-2">生成分享卡片</button>
+  </div>
+</div>
+
+<script type="importmap">
+{"imports":{"three":"./lib/three.module.js"}}
+</script>
+<script type="module" src="./main.js"></script>
+</body>
+</html>
